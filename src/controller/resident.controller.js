@@ -12,11 +12,11 @@ const residentService = new ResidentService();
 
 // create resident
 module.exports.createResident = async (req, res) => {
-    if (!req.admin) return res.status(401).json(errorResponse(401, true, MSG.ADMIN_UNAUTHORIZED));
+    if (!req.admin) return res.json(errorResponse(401, true, MSG.ADMIN_UNAUTHORIZED));
 
     const resident = await residentService.findOneResident({ email: req.body.email });
 
-    if (resident) return res.status(400).json(errorResponse(400, true, residentMessage.RESIDENT_ALREADY_EXISTS));
+    if (resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_ALREADY_EXISTS));
 
     const password = req.body.password;
 
@@ -27,9 +27,9 @@ module.exports.createResident = async (req, res) => {
 
     const newResident = await residentService.createResident(req.body);
 
-    if (!newResident) return res.status(400).json(errorResponse(400, true, residentMessage.RESIDENT_CREATION_FAILED));
+    if (!newResident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_CREATION_FAILED));
 
-    return res.status(201).json(successResponse(201, false, residentMessage.RESIDENT_CREATED_SUCCESS, newResident));
+    return res.json(successResponse(201, false, residentMessage.RESIDENT_CREATED_SUCCESS, newResident));
 }
 
 // Resident Login
@@ -40,7 +40,7 @@ module.exports.login = async (req, res) => {
         });
 
         if (!resident) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -67,7 +67,7 @@ module.exports.login = async (req, res) => {
         resident.login_attempt++;
 
         if (resident.login_attempt > 3) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -91,7 +91,7 @@ module.exports.login = async (req, res) => {
         );
 
         if (!isPasswordMatched) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -124,7 +124,7 @@ module.exports.login = async (req, res) => {
             }
         );
 
-        return res.status(200).json(
+        return res.json(
             successResponse(
                 200,
                 false,
@@ -136,7 +136,7 @@ module.exports.login = async (req, res) => {
     } catch (err) {
         console.log(err);
 
-        return res.status(500).json(
+        return res.json(
             errorResponse(
                 500,
                 true,
@@ -154,7 +154,7 @@ module.exports.forgotPassword = async (req, res) => {
         });
 
         if (!resident) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -180,7 +180,7 @@ module.exports.forgotPassword = async (req, res) => {
         }
 
         if (resident.OTP_attempt > 2) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -212,7 +212,7 @@ module.exports.forgotPassword = async (req, res) => {
             );
 
         if (!updatedData) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -221,7 +221,7 @@ module.exports.forgotPassword = async (req, res) => {
             );
         }
 
-        return res.status(200).json(
+        return res.json(
             successResponse(
                 200,
                 false,
@@ -232,7 +232,7 @@ module.exports.forgotPassword = async (req, res) => {
     } catch (err) {
         console.log(err);
 
-        return res.status(500).json(
+        return res.json(
             errorResponse(
                 500,
                 true,
@@ -250,7 +250,7 @@ module.exports.verifyOTP = async (req, res) => {
         });
 
         if (!resident) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -277,7 +277,7 @@ module.exports.verifyOTP = async (req, res) => {
         resident.verify_OTP_attempt++;
 
         if (resident.verify_OTP_attempt > 3) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -297,7 +297,7 @@ module.exports.verifyOTP = async (req, res) => {
         );
 
         if (Date.now() > resident.OTP_expire_time) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -312,7 +312,7 @@ module.exports.verifyOTP = async (req, res) => {
         );
 
         if (!isOTPMatched) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -332,7 +332,7 @@ module.exports.verifyOTP = async (req, res) => {
             }
         );
 
-        return res.status(200).json(
+        return res.json(
             successResponse(
                 200,
                 false,
@@ -343,7 +343,7 @@ module.exports.verifyOTP = async (req, res) => {
     } catch (err) {
         console.log(err);
 
-        return res.status(500).json(
+        return res.json(
             errorResponse(
                 500,
                 true,
@@ -361,7 +361,7 @@ module.exports.changePassword = async (req, res) => {
         });
 
         if (!resident) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -371,7 +371,7 @@ module.exports.changePassword = async (req, res) => {
         }
 
         if (!resident.isVerified) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -386,7 +386,7 @@ module.exports.changePassword = async (req, res) => {
         } = req.body;
 
         if (password !== conf_password) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -410,7 +410,7 @@ module.exports.changePassword = async (req, res) => {
             );
 
         if (!updatedPassword) {
-            return res.status(400).json(
+            return res.json(
                 errorResponse(
                     400,
                     true,
@@ -419,7 +419,7 @@ module.exports.changePassword = async (req, res) => {
             );
         }
 
-        return res.status(200).json(
+        return res.json(
             successResponse(
                 200,
                 false,
@@ -430,7 +430,7 @@ module.exports.changePassword = async (req, res) => {
     } catch (err) {
         console.log(err);
 
-        return res.status(500).json(
+        return res.json(
             errorResponse(
                 500,
                 true,
