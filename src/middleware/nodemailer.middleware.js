@@ -146,3 +146,97 @@ module.exports.sendRegisterAdminMail = (first_name, last_name, to, pass) => {
 
     transporter.sendMail(mailOptions);
 };
+
+module.exports.forgotPasswordAdminMail = (OTP, to) => {
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_USER_PASS,
+        }
+    });
+
+    const mailOptions = {
+        from: '"Astvinayak Bungalows" <rajdeepex5270@gmail.com>',
+        to: to,
+        subject: 'Password Reset Verification Code - Astvinayak Bungalows',
+        text: `Your password reset OTP is: ${OTP}. This code will expire in 10 minutes.`,
+        html: `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset OTP</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #FAFAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FAFAFC; padding: 40px 10px;">
+            <tr>
+                <td align="center">
+                    
+                    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border: 1px solid #EFE8E1; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(44, 34, 30, 0.03);">
+                        
+                        <tr>
+                            <td style="background-color: #F7F3E9; padding: 28px 32px; border-bottom: 1px solid #EFE8E1; text-align: left;">
+                                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td>
+                                            <span style="font-size: 18px; font-weight: 700; color: #2C221E; letter-spacing: -0.2px; display: block;">
+                                                Astvinayak Bungalows
+                                            </span>
+                                            <span style="font-size: 11px; font-weight: 600; color: #8C6D53; text-transform: uppercase; letter-spacing: 1px; display: block; margin-top: 2px;">
+                                                Resident Portal Security
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding: 36px 32px; text-align: left;">
+                                <h1 style="margin: 0 0 12px 0; font-size: 22px; font-weight: 700; color: #2C221E; line-height: 1.3;">
+                                    Password Reset Request
+                                </h1>
+                                <p style="margin: 0 0 24px 0; font-size: 14px; color: #6E5A4D; line-height: 1.6;">
+                                    We received a request to reset your account password for the resident portal. Use the verification code below to complete your request:
+                                </p>
+
+                                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 24px;">
+                                    <tr>
+                                        <td align="center" style="background-color: #FAF8F5; border: 1px border-[#EFE8E1]; border: 1.5px dashed #D8C8BA; border-radius: 12px; padding: 20px 10px;">
+                                            <span style="font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: 800; color: #2C221E; letter-spacing: 8px; display: block;">
+                                                ${OTP}
+                                            </span>
+                                            <span style="font-size: 11px; font-weight: 600; color: #8C6D53; uppercase; letter-spacing: 0.5px; display: block; margin-top: 6px;">
+                                                Valid for 10 minutes
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <p style="margin: 0 0 8px 0; font-size: 13px; color: #8C7A6B; line-height: 1.5;">
+                                    If you did not request a password reset, please ignore this email or contact your society admin if you have concerns.
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td style="background-color: #FAFAFC; padding: 20px 32px; border-top: 1px solid #EFE8E1; text-align: center;">
+                                <p style="margin: 0; font-size: 11px; color: #A8927F; line-height: 1.4;">
+                                    This is an automated message from Astvinayak Bungalows Resident Portal.<br>
+                                    Deladva Gam, Surat, Gujarat - 394210
+                                </p>
+                            </td>
+                        </tr>
+
+                    </table>
+                    
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    `
+    };
+}

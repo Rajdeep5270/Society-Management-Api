@@ -9,7 +9,7 @@ const moment = require('moment');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-const { sendRegisterAdminMail } = require("../middleware/nodemailer.middleware");
+const { sendRegisterAdminMail, forgotPasswordAdminMail } = require("../middleware/nodemailer.middleware");
 const { error } = require("console");
 const { residentMessage } = require("../utils/residentMsg");
 
@@ -98,9 +98,11 @@ module.exports.forgotPassword = async (req, res) => {
 
         const hashedOTP = await bcrypt.hash(OTP.toString(), 11);
 
+        forgotPasswordAdminMail(OTP, admin.email);
+
         admin.OTP_attempt++;
 
-        const updatedData = await adminService.updateAdmin(admin._id, { OTP: hashedOTP, OTP_attempt: admin.OTP_attempt, OTP_attempt_expire_time: Date.now() + 1000 * 60 * 60, OTP_expire_time: Date.now() + 1000 * 60 * 2 });
+        const updatedData = await adminService.updateAdmin(admin._id, { OTP: hashedOTP, OTP_attempt: admin.OTP_attempt, OTP_attempt_expire_time: Date.now() + 1000 * 60 * 60, OTP_expire_time: Date.now() + 1000 * 60 * 10 });
 
         if (!updatedData) return res.json(errorResponse(400, true, MSG.ADMIN_OTP_SENT_FAILED));
 
