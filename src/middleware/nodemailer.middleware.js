@@ -1,14 +1,14 @@
 const nodemailer = require('nodemailer');
 
-module.exports.sendRegisterAdminMail = async (first_name, last_name, to, pass) => {
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_USER_PASS,
-        }
-    });
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_USER_PASS,
+    }
+});
 
+module.exports.sendRegisterAdminMail = async (first_name, last_name, to, pass) => {
     const websiteURL = "https://rajdeep-codefolio.vercel.app";
     const societyName = "Astvinayak Bungalows";
 
@@ -148,15 +148,7 @@ module.exports.sendRegisterAdminMail = async (first_name, last_name, to, pass) =
 };
 
 module.exports.forgotPasswordAdminMail = async (OTP, to) => {
-    console.log(to);
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_USER_PASS,
-        }
-    });
-
+    
     const mailOptions = {
         from: '"Astvinayak Bungalows" <rajdeepex5270@gmail.com>',
         to: to,
