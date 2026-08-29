@@ -7,9 +7,9 @@ const adminRoute = express.Router();
 
 adminRoute.post('/register', register);
 adminRoute.post('/login', login);
-adminRoute.post('/forgot_password', forgotPassword);
-adminRoute.post('/verify_OTP', verifyOTP);
-adminRoute.post('/change_password', changePassword);
+adminRoute.post('/forgot-password', forgotPassword);
+adminRoute.post('/verify-OTP', verifyOTP);
+adminRoute.post('/change-password', changePassword);
 
 // authentication middleware 
 adminRoute.use(authMiddleware);
