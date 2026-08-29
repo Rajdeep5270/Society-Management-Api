@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-module.exports.sendRegisterAdminMail = (first_name, last_name, to, pass) => {
+module.exports.sendRegisterAdminMail = async (first_name, last_name, to, pass) => {
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -144,10 +144,10 @@ module.exports.sendRegisterAdminMail = (first_name, last_name, to, pass) => {
     `
     };
 
-    transporter.sendMail(mailOptions);
+    return await transporter.sendMail(mailOptions);
 };
 
-module.exports.forgotPasswordAdminMail = (OTP, to) => {
+module.exports.forgotPasswordAdminMail = async (OTP, to) => {
     console.log(to);
     const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -205,7 +205,7 @@ module.exports.forgotPasswordAdminMail = (OTP, to) => {
 
                                 <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 24px;">
                                     <tr>
-                                        <td align="center" style="background-color: #FAF8F5; border: 1px border-[#EFE8E1]; border: 1.5px dashed #D8C8BA; border-radius: 12px; padding: 20px 10px;">
+                                        <td align="center" style="background-color: #FAF8F5; border: 1px border-#EFE8E1; border: 1.5px dashed #D8C8BA; border-radius: 12px; padding: 20px 10px;">
                                             <span style="font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: 800; color: #2C221E; letter-spacing: 8px; display: block;">
                                                 ${OTP}
                                             </span>
@@ -241,5 +241,5 @@ module.exports.forgotPasswordAdminMail = (OTP, to) => {
     `
     };
 
-    transporter.sendMail(mailOptions);
+    return await transporter.sendMail(mailOptions);
 }

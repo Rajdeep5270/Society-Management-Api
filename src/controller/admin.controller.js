@@ -10,7 +10,6 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const { sendRegisterAdminMail, forgotPasswordAdminMail } = require("../middleware/nodemailer.middleware");
-const { error } = require("console");
 const { residentMessage } = require("../utils/residentMsg");
 
 const adminService = new AdminService();
@@ -33,7 +32,9 @@ module.exports.register = async (req, res) => {
 
         if (!newAdmin) return res.json(errorResponse(400, true, MSG.ADMIN_REGISTRATION_FAILED));
 
-        sendRegisterAdminMail(req.body.first_name, req.body.last_name, req.body.email, password);
+        const isSent = await sendRegisterAdminMail(req.body.first_name, req.body.last_name, req.body.email, password);
+
+        if (!isSent) return res.json(errorResponse(400, true, MSG.ADMIN_OTP_SENT_FAILED));
 
         return res.json(successResponse(201, false, MSG.ADMIN_REGISTRATION_SUCCESS, newAdmin));
     } catch (err) {
@@ -98,7 +99,9 @@ module.exports.forgotPassword = async (req, res) => {
 
         const hashedOTP = await bcrypt.hash(OTP.toString(), 11);
 
-        forgotPasswordAdminMail(OTP, admin.email);
+        const isSent = await forgotPasswordAdminMail(OTP, admin.email);
+
+        if (!isSent) return res.json(errorResponse(400, true, MSG.ADMIN_OTP_SENT_FAILED));
 
         admin.OTP_attempt++;
 
