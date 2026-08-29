@@ -148,6 +148,7 @@ module.exports.sendRegisterAdminMail = (first_name, last_name, to, pass) => {
 };
 
 module.exports.forgotPasswordAdminMail = (OTP, to) => {
+    console.log(to);
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -163,7 +164,7 @@ module.exports.forgotPasswordAdminMail = (OTP, to) => {
         text: `Your password reset OTP is: ${OTP}. This code will expire in 10 minutes.`,
         html: `
     <!DOCTYPE html>
-    <html>
+    <html> 
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -239,4 +240,6 @@ module.exports.forgotPasswordAdminMail = (OTP, to) => {
     </html>
     `
     };
+
+    transporter.sendMail(mailOptions);
 }
