@@ -178,7 +178,7 @@ module.exports.getAllResident = async (req, res) => {
     try {
         if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
-        const allResidents = await residentService.findAllll({ isActive: true, isDelete: false });
+        const allResidents = await residentService.findAll({ isActive: true, isDelete: false });
 
         if (!allResidents) return res.json(errorResponse(400, true, residentMessage.RESIDENTS_FETCH_FAILED));
 
