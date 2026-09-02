@@ -17,7 +17,7 @@ const connectDB = async () => {
 
     // Connection already in progress
     if (!cached.promise) {
-        cached.promise = mongoose.connect(process.env.MONGO_URI, {
+        cached.promise = mongoose.connect(process.env.MONGOBBURI, {
             maxPoolSize: 10,
             serverSelectionTimeoutMS: 10000,
             bufferCommands: false,
