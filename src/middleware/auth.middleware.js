@@ -6,38 +6,92 @@ const { errorResponse } = require("../utils/response");
 const adminService = new AdminService();
 const residentService = new ResidentService();
 
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 module.exports.authMiddleware = async (req, res, next) => {
-    let token = req.headers.authorization;
-
-    if (!token) return res.status(400).json(errorResponse(400, true, MSG.ADMIN_TOKEN_REQUIRED));
-
-    token = token.slice(7, token.length);
-
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader) {
+            return res.status(401).json(
+                errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_REQUIRED
+                )
+            );
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+            ? authHeader.split(" ")[1]
+            : null;
+
+        if (!token) {
+            return res.status(401).json(
+                errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_INVALID
+                )
+            );
+        }
+
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET_KEY
+        );
 
         let data;
 
-        // console.log(decoded);
         if (decoded.role === "admin") {
-            data = await adminService.findOneAdmin({ _id: decoded.id, isActive: true, isDelete: false });
 
-            req.admin = data;
+            data = await adminService.findOneAdmin({
+                _id: decoded.id,
+                isActive: true,
+                isDelete: false
+            });
+
+            if (data) {
+                req.admin = data;
+            }
         }
 
         if (decoded.role === "resident") {
-            data = await residentService.findOneResident({ _id: decoded.id, isActive: true, isDelete: false });
 
-            req.resident = data;
+            data = await residentService.findOneResident({
+                _id: decoded.id,
+                isActive: true,
+                isDelete: false
+            });
+
+            if (data) {
+                req.resident = data;
+            }
         }
 
-        if (!data) return res.status(401).json(errorResponse(401, true, MSG.ADMIN_TOKEN_INVALID));
+        if (!data) {
+            return res.status(401).json(
+                errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_INVALID
+                )
+            );
+        }
 
         next();
+
     } catch (err) {
-        console.log(err);
-        return res.status(400).json(errorResponse(400, true, MSG.ADMIN_TOKEN_INVALID));
+
+        console.log("Auth middleware error:", err.message);
+
+        return res.status(401).json(
+            errorResponse(
+                401,
+                true,
+                MSG.ADMIN_TOKEN_INVALID
+            )
+        );
     }
-}
+};

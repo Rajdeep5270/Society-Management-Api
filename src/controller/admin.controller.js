@@ -44,43 +44,147 @@ module.exports.register = async (req, res) => {
 }
 
 module.exports.login = async (req, res) => {
+
     try {
-        const admin = await adminService.findOneAdmin({ email: req.body.email });
+        const admin = await adminService.findOneAdmin({
+            email: req.body.email
+        });
 
-        if (!admin) return res.json(errorResponse(400, true, MSG.ADMIN_INVALID_CREDENTIALS));
-
-        if (admin.login_attempt_expire_time && Date.now() > admin.login_attempt_expire_time) {
-            admin.login_attempt = 0;
-            await adminService.updateAdmin(admin._id, { login_attempt: 0, login_attempt_expire_time: null })
-        };
-
-        admin.login_attempt++;
-
-        if (admin.login_attempt > 3) {
-            return res.json(errorResponse(400, true, MSG.ADMIN_LOGIN_ATTEMPT_REACHED));
+        if (!admin) {
+            return res.json(
+                errorResponse(
+                    400,
+                    true,
+                    MSG.ADMIN_INVALID_CREDENTIALS
+                )
+            );
         }
 
-        await adminService.updateAdmin(admin._id, { login_attempt: admin.login_attempt, login_attempt_expire_time: Date.now() + 1000 * 60 * 60 });
+        // Reset login attempts if 1 hour has expired
+        if (
+            admin.login_attempt_expire_time &&
+            Date.now() > admin.login_attempt_expire_time
+        ) {
+            admin.login_attempt = 0;
 
-        const isPasswordMatched = await bcrypt.compare(req.body.password, admin.password);
+            await adminService.updateAdmin(
+                admin._id,
+                {
+                    login_attempt: 0,
+                    login_attempt_expire_time: null
+                }
+            );
+        }
 
-        if (!isPasswordMatched) return res.json(errorResponse(400, true, MSG.ADMIN_INVALID_CREDENTIALS));
+        // Increase login attempt
+        admin.login_attempt++;
 
+        // Maximum 3 attempts
+        if (admin.login_attempt > 3) {
+            return res.json(
+                errorResponse(
+                    400,
+                    true,
+                    MSG.ADMIN_LOGIN_ATTEMPT_REACHED
+                )
+            );
+        }
+
+        await adminService.updateAdmin(
+            admin._id,
+            {
+                login_attempt: admin.login_attempt,
+                login_attempt_expire_time:
+                    Date.now() + 1000 * 60 * 60
+            }
+        );
+
+        // Check password
+        const isPasswordMatched = await bcrypt.compare(
+            req.body.password,
+            admin.password
+        );
+
+        if (!isPasswordMatched) {
+            return res.json(
+                errorResponse(
+                    400,
+                    true,
+                    MSG.ADMIN_INVALID_CREDENTIALS
+                )
+            );
+        }
+
+        // JWT Payload
         const payload = {
             id: admin._id,
             role: "admin"
-        }
+        };
 
-        const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: '1d' });
+        // Access Token
+        const accessToken = jwt.sign(
+            payload,
+            process.env.JWT_SECRET_KEY,
+            {
+                expiresIn: "15m"
+            }
+        );
 
-        await adminService.updateAdmin(admin._id, { last_login: moment().format('MM/DD/YYYY, h:mm:ss a'), login_attempt: 0, login_attempt_expire_time: null });
+        // Refresh Token
+        const refreshToken = jwt.sign(
+            {
+                id: admin._id,
+                role: "admin"
+            },
+            process.env.JWT_REFRESH_SECRET_KEY,
+            {
+                expiresIn: "7d"
+            }
+        );
 
-        return res.json(successResponse(200, false, MSG.ADMIN_LOGIN_SUCCESS, token));
+        // Store refresh token in HttpOnly cookie
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        // Login successful
+        await adminService.updateAdmin(
+            admin._id,
+            {
+                last_login: moment().format(
+                    "MM/DD/YYYY, h:mm:ss a"
+                ),
+                login_attempt: 0,
+                login_attempt_expire_time: null
+            }
+        );
+
+        // Only send access token to frontend
+        return res.json(
+            successResponse(
+                200,
+                false,
+                MSG.ADMIN_LOGIN_SUCCESS,
+                accessToken
+            )
+        );
+
     } catch (err) {
+
         console.log(err);
-        return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
+
+        return res.json(
+            errorResponse(
+                500,
+                true,
+                MSG.INTERNAL_SERVER_ERROR
+            )
+        );
     }
-}
+};
 
 module.exports.forgotPassword = async (req, res) => {
     try {
