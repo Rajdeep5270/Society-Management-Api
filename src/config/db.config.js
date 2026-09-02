@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 let connectionPromise;
 
-module.exports = async function connectDatabase() {
+async function connectDatabase() {
     if (!process.env.MONGODBURI) {
         throw new Error('MONGODBURI environment variable is missing');
     }
@@ -26,6 +26,6 @@ module.exports = async function connectDatabase() {
     }
 
     return connectionPromise;
-};
+}
 
 module.exports = connectDatabase;
