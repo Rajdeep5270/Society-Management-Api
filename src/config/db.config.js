@@ -1,7 +1,30 @@
 const mongoose = require('mongoose');
 
-mongoose.connect(process.env.MONGODBURI).then(() => {
-    console.log("Database is connected...");
-}).catch(err => {
-    console.log("Database is not connected...", err);
-});    
+let cached = global.mongoose;
+
+if (!cached) {
+    cached = global.mongoose = {
+        conn: null,
+        promise: null,
+    };
+}
+
+const connectDB = async () => {
+    if (cached.conn) {
+        return cached.conn;
+    }
+
+    if (!cached.promise) {
+        cached.promise = mongoose.connect(process.env.MONGODBURI, {
+            serverSelectionTimeoutMS: 5000,
+        });
+    }
+
+    cached.conn = await cached.promise;
+
+    console.log('Database is connected...');
+
+    return cached.conn;
+};
+
+module.exports = connectDB;
