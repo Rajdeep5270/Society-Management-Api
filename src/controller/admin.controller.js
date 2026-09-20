@@ -15,7 +15,7 @@ const adminService = new AdminService();
 
 module.exports.register = async (req, res) => {
     try {
-        const admin = await adminService.findOneAdmin({ email: req.body.email });
+        const admin = await adminService.findOneAdmin({ email: req.body.email, isActive: true, isDelete: false });
 
         if (admin) return res.json(errorResponse(400, true, MSG.ADMIN_ALREADY_EXISTS));
 
@@ -45,7 +45,9 @@ module.exports.login = async (req, res) => {
 
     try {
         const admin = await adminService.findOneAdmin({
-            email: req.body.email
+            email: req.body.email,
+            isActive: true,
+            isDelete: false
         });
 
         if (!admin) {
@@ -183,7 +185,7 @@ module.exports.login = async (req, res) => {
 
 module.exports.forgotPassword = async (req, res) => {
     try {
-        const admin = await adminService.findOneAdmin({ email: req.body.email });
+        const admin = await adminService.findOneAdmin({ email: req.body.email, isActive: true, isDelete: false });
 
         if (!admin) return res.json(errorResponse(400, true, MSG.ADMIN_NOT_FOUND));
 
@@ -217,7 +219,7 @@ module.exports.forgotPassword = async (req, res) => {
 
 module.exports.verifyOTP = async (req, res) => {
     try {
-        const admin = await adminService.findOneAdmin({ email: req.body.email });
+        const admin = await adminService.findOneAdmin({ email: req.body.email, isActive: true, isDelete: false });
 
         if (!admin) return res.json(errorResponse(400, true, MSG.ADMIN_NOT_FOUND));
 
@@ -249,7 +251,7 @@ module.exports.verifyOTP = async (req, res) => {
 
 module.exports.changePassword = async (req, res) => {
     try {
-        const admin = await adminService.findOneAdmin({ email: req.body.email });
+        const admin = await adminService.findOneAdmin({ email: req.body.email, isActive: true, isDelete: false });
 
         if (!admin) return res.json(errorResponse(400, true, MSG.ADMIN_NOT_FOUND));
 

@@ -36,7 +36,9 @@ module.exports.createResident = async (req, res) => {
 module.exports.login = async (req, res) => {
     try {
         const resident = await residentService.findOneResident({
-            email: req.body.email
+            email: req.body.email,
+            isActive: true,
+            isDelete: false
         });
 
         if (!resident) {
@@ -165,7 +167,9 @@ module.exports.login = async (req, res) => {
 module.exports.forgotPassword = async (req, res) => {
     try {
         const resident = await residentService.findOneResident({
-            email: req.body.email
+            email: req.body.email,
+            isActive: true,
+            isDelete: false
         });
 
         if (!resident) {
@@ -261,7 +265,9 @@ module.exports.forgotPassword = async (req, res) => {
 module.exports.verifyOTP = async (req, res) => {
     try {
         const resident = await residentService.findOneResident({
-            email: req.body.email
+            email: req.body.email,
+            isActive: true,
+            isDelete: false
         });
 
         if (!resident) {
@@ -372,7 +378,9 @@ module.exports.verifyOTP = async (req, res) => {
 module.exports.changePassword = async (req, res) => {
     try {
         const resident = await residentService.findOneResident({
-            email: req.body.email
+            email: req.body.email,
+            isActive: true,
+            isDelete: false
         });
 
         if (!resident) {
