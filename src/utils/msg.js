@@ -53,4 +53,40 @@ module.exports.MSG = {
 
     // Server
     INTERNAL_SERVER_ERROR: "Internal server error.",
+
+    // Admin CRUD
+    ADMIN_REQUIRED_FIELDS: "Required fields are missing.",
+    ADMIN_NOT_FOUND: "Admin not found.",
+
+    ADMIN_CREATED_SUCCESS: "Admin created successfully.",
+    ADMIN_CREATION_FAILED: "Admin creation failed.",
+
+    ADMIN_FETCH_ALL_SUCCESS: "Admins fetched successfully.",
+    ADMIN_FETCH_ALL_FAILED: "Failed to fetch admins.",
+
+    ADMIN_FETCH_SINGLE_SUCCESS: "Admin fetched successfully.",
+    ADMIN_FETCH_SINGLE_FAILED: "Failed to fetch admin.",
+
+    ADMIN_UPDATED_SUCCESS: "Admin updated successfully.",
+    ADMIN_UPDATE_FAILED: "Admin update failed.",
+
+    ADMIN_DELETED_SUCCESS: "Admin deleted successfully.",
+    ADMIN_DELETION_FAILED: "Admin deletion failed.",
+
+    // Refresh Token
+    REFRESH_TOKEN_REQUIRED: "Refresh token is required.",
+    REFRESH_TOKEN_INVALID: "Invalid refresh token.",
+    REFRESH_TOKEN_EXPIRED: "Refresh token has expired.",
+    REFRESH_TOKEN_GENERATED: "Access token generated successfully.",
+    REFRESH_TOKEN_GENERATION_FAILED: "Failed to generate access token.",
+    REFRESH_TOKEN_REVOKED: "Refresh token has been revoked.",
+
+    // Refresh Token Access Validation
+    ACCESS_TOKEN_REQUIRED: "Access token is required.",
+    ACCESS_TOKEN_INVALID: "Invalid access token.",
+    ACCESS_TOKEN_EXPIRED: "Access token has expired.",
+    ACCESS_TOKEN_VERIFICATION_FAILED: "Access token verification failed.",
+    ACCESS_TOKEN_PAYLOAD_INVALID: "Access token payload is invalid.",
+    ACCESS_TOKEN_USER_MISMATCH: "Access token user mismatch.",
+    ACCESS_TOKEN_ROLE_MISMATCH: "Access token role mismatch.",
 }

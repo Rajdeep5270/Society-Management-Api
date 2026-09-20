@@ -1,34 +1,34 @@
 const express = require('express');
-const { register, login, forgotPassword, verifyOTP, changePassword, getAllResident, fetchSingleResident, updateSingleResident, activeOrInActiveResident, deleteResident } = require('../../../controller/admin.controller');
+const { register, login, forgotPassword, verifyOTP, changePassword, getAllAdmin, getSingleAdmin, activeOrInactiveAdmin, updateSingleAdmin, deleteSingleAdmin, generateRefreshToken, generateAccessToken } = require('../../../controller/admin.controller');
 const { authMiddleware } = require('../../../middleware/auth.middleware');
-const { createResident } = require('../../../controller/resident.controller');
 
 const adminRoute = express.Router();
 
-adminRoute.post('/register', register);
 adminRoute.post('/login', login);
 adminRoute.post('/forgot-password', forgotPassword);
 adminRoute.post('/verify-OTP', verifyOTP);
 adminRoute.post('/change-password', changePassword);
+adminRoute.post('/refresh-token', generateAccessToken);
 
 // authentication middleware 
 adminRoute.use(authMiddleware);
 
-// create admin 
-adminRoute.post('/create-resident', createResident);
+// fetch all admin 
+adminRoute.get('/', getAllAdmin);
 
-// get all resident 
-adminRoute.get('/', getAllResident);
+// get single admin 
+adminRoute.get('/:id', getSingleAdmin);
 
-// fetch single resident 
-adminRoute.get('/:id', fetchSingleResident);
+// register admin 
+adminRoute.post('/', register);
 
-// update resident 
-adminRoute.patch('/:id', updateSingleResident);
+// active or inactive admin 
+adminRoute.put('/:id', activeOrInactiveAdmin);
 
-// active or inactive resident 
-adminRoute.put('/:id', activeOrInActiveResident);
+// update single admin 
+adminRoute.patch('/:id', updateSingleAdmin);
 
-adminRoute.delete('/:id', deleteResident);
+// delete admin
+adminRoute.delete('/:id', deleteSingleAdmin);
 
 module.exports = adminRoute;

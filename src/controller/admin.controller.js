@@ -10,10 +10,8 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const { sendRegisterAdminMail, forgotPasswordAdminMail } = require("../middleware/nodemailer.middleware");
-const { residentMessage } = require("../utils/residentMsg");
 
 const adminService = new AdminService();
-const residentService = new ResidentService();
 
 module.exports.register = async (req, res) => {
     try {
@@ -142,7 +140,6 @@ module.exports.login = async (req, res) => {
             }
         );
 
-        // Store refresh token in HttpOnly cookie
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: true,
@@ -150,7 +147,6 @@ module.exports.login = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
-        // Login successful
         await adminService.updateAdmin(
             admin._id,
             {
@@ -162,7 +158,6 @@ module.exports.login = async (req, res) => {
             }
         );
 
-        // Only send access token to frontend
         return res.json(
             successResponse(
                 200,
@@ -277,93 +272,242 @@ module.exports.changePassword = async (req, res) => {
     }
 }
 
-// fetch all resident 
-module.exports.getAllResident = async (req, res) => {
+module.exports.generateAccessToken = async (req, res) => {
     try {
-        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
-        const allResidents = await residentService.findAll({ isActive: true, isDelete: false });
+        // Get Access Token from Header
+        const authHeader = req.headers.authorization;
 
-        if (!allResidents) return res.json(errorResponse(400, true, residentMessage.RESIDENTS_FETCH_FAILED));
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_REQUIRED
+                ));
+        }
 
-        return res.json(successResponse(200, false, residentMessage.RESIDENTS_FETCH_SUCCESS, allResidents));
+        const accessToken = authHeader.split(" ")[1];
+
+        // Decode Access Token
+        const decodedAccessToken = jwt.decode(accessToken);
+
+        if (!decodedAccessToken) {
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_INVALID
+                ));
+        }
+
+        // Required payload values
+        if (!decodedAccessToken.id || !decodedAccessToken.role) {
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_INVALID
+                ));
+        }
+
+        // Verify Access Token Signature
+        let verifiedAccessToken;
+
+        try {
+            verifiedAccessToken = jwt.verify(
+                accessToken,
+                process.env.JWT_SECRET_KEY,
+                {
+                    ignoreExpiration: true
+                }
+            );
+        } catch (err) {
+            console.log(err);
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_VERIFICATION_FAILED
+                ));
+        }
+
+        // Get Refresh Token from Cookie
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.REFRESH_TOKEN_REQUIRED
+                ));
+        }
+
+        // Verify Refresh Token
+        const decodedRefreshToken = jwt.verify(
+            refreshToken,
+            process.env.JWT_REFRESH_SECRET_KEY
+        );
+
+        // Match Access Token and Refresh Token
+        if (
+            verifiedAccessToken.id !== decodedRefreshToken.id ||
+            verifiedAccessToken.role !== decodedRefreshToken.role
+        ) {
+            return res
+
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.REFRESH_TOKEN_INVALID
+                ));
+        }
+
+        // Generate New Access Token
+        const newAccessToken = jwt.sign(
+            {
+                id: decodedRefreshToken.id,
+                role: decodedRefreshToken.role
+            },
+            process.env.JWT_SECRET_KEY,
+            {
+                expiresIn: "15m"
+            }
+        );
+
+        return res
+            .json(successResponse(
+                200,
+                false,
+                MSG.REFRESH_TOKEN_GENERATED,
+                {
+                    accessToken: newAccessToken
+                }
+            ));
+
     } catch (err) {
-        console.log("Get all resident error : ", err);
+
+        console.log(err);
+
+        if (err.name === "TokenExpiredError") {
+            return res
+
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.REFRESH_TOKEN_EXPIRED
+                ));
+        }
+
+        if (err.name === "JsonWebTokenError") {
+            return res
+
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.REFRESH_TOKEN_INVALID
+                ));
+        }
+
+        return res
+            .json(errorResponse(
+                500,
+                true,
+                MSG.INTERNAL_SERVER_ERROR
+            ));
+    }
+};
+
+module.exports.getAllAdmin = async (req, res) => {
+    try {
+        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
+
+        const allAdmin = await adminService.fetchAllAdmin({ isActive: true, isDelete: false });
+
+        if (!allAdmin) return res.json(errorResponse(400, true, MSG.ADMIN_FETCH_ALL_FAILED));
+
+        return res.json(successResponse(200, false, MSG.ADMIN_FETCH_ALL_SUCCESS, allAdmin));
+    } catch (err) {
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
 
-// fetch single resident 
-module.exports.fetchSingleResident = async (req, res) => {
+module.exports.getSingleAdmin = async (req, res) => {
     try {
-        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
 
-        const resident = await residentService.findOneResident({ _id: req.params.id, isActive: true, isDelete: false });
+        const id = req.params.id;
 
-        if (!resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_FETCH_FAILED));
+        const admin = await adminService.findOneAdmin({ _id: id, isActive: true, isDelete: false });
 
-        return res.json(successResponse(200, false, residentMessage.RESIDENT_FETCH_SUCCESS, resident));
+        if (!admin) return res.json(errorResponse(400, true, MSG.ADMIN_FETCH_SINGLE_FAILED));
+
+        return res.json(successResponse(200, false, MSG.ADMIN_FETCH_SINGLE_SUCCESS, admin));
     } catch (err) {
-        console.log("Fetch single resident error : ", err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
 
-module.exports.updateSingleResident = async (req, res) => {
+module.exports.activeOrInactiveAdmin = async (req, res) => {
     try {
-        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
 
-        const resident = await residentService.findOneResident({ _id: req.params.id, isActive: true, isDelete: false });
+        const id = req.params.id;
 
-        if (!resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_FETCH_FAILED));
+        const admin = await adminService.findOneAdmin({ _id: id, isDelete: false });
+
+        if (!admin) return res.json(errorResponse(400, true, MSG.ADMIN_NOT_FOUND));
+
+        const updateAdmin = await adminService.updateAdmin(id, { isActive: !admin.isActive });
+
+        if (!updateAdmin) return res.json(errorResponse(400, true, MSG.ADMIN_UPDATE_FAILED));
+
+        return res.json(successResponse(200, false, `${updateAdmin.first_name} ${updateAdmin.last_name}  is ${updateAdmin.isActive ? 'active' : 'inactive'}`));
+    } catch (err) {
+        return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
+    }
+}
+
+module.exports.updateSingleAdmin = async (req, res) => {
+    try {
+        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
+
+        const data = req.body;
+        const id = req.params.id;
+
+        const admin = await adminService.findOneAdmin({ _id: id, isActive: true, isDelete: false });
+
+        if (!admin) return res.json(errorResponse(400, true, MSG.ADMIN_NOT_FOUND));
 
         req.body.updated_at = moment().format('MM/DD/YYYY, h:mm:ss a');
 
-        const updatedResident = await residentService.updateResident(req.params.id, req.body);
+        const updatedAdmin = await adminService.updateAdmin(id, data);
 
-        if (!updatedResident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_UPDATE_FAILED));
+        if (!updatedAdmin) return res.json(errorResponse(400, true, MSG.ADMIN_UPDATED_SUCCESS));
 
-        return res.json(successResponse(200, false, residentMessage.RESIDENT_UPDATED_SUCCESS, updatedResident));
+        return res.json(successResponse(200, false, MSG.ADMIN_UPDATED_SUCCESS, updatedAdmin));
     } catch (err) {
-        console.log("Fetch single resident error : ", err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
 
-module.exports.activeOrInActiveResident = async (req, res) => {
+module.exports.deleteSingleAdmin = async (req, res) => {
     try {
-        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
 
-        const resident = await residentService.findOneResident({ _id: req.params.id, isDelete: false });
+        const id = req.params.id;
 
-        if (!resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_FETCH_FAILED));
+        const admin = await adminService.findOneAdmin({ _id: id, isActive: true, isDelete: false });
 
-        const updatedResident = await residentService.updateResident(req.params.id, { isActive: !resident.isActive });
+        if (!admin) return res.json(errorResponse(400, true, MSG.ADMIN_NOT_FOUND));
 
-        if (!updatedResident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_UPDATE_FAILED));
+        const deletedAdmin = await adminService.updateAdmin(id, { isActive: !admin.isActive, isDelete: !admin.isDelete });
 
-        return res.json(successResponse(200, false, `${updatedResident.first_name} ${updatedResident.last_name}  is ${updatedResident.isActive ? 'active' : 'inactive'}`));
+        if (!deletedAdmin) return res.json(400, true, MSG.ADMIN_DELETION_FAILED);
+
+        return res.json(successResponse(200, false, MSG.ADMIN_DELETED_SUCCESS, deletedAdmin));
     } catch (err) {
-        console.log("Active or inactive resident error : ", err);
-        return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
-    }
-}
-
-module.exports.deleteResident = async (req, res) => {
-    try {
-        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
-
-        const resident = await residentService.findOneResident({ _id: req.params.id, isActive: true, isDelete: false });
-
-        if (!resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_FETCH_FAILED));
-
-        const deletedResident = await residentService.updateResident(req.params.id, { isActive: !resident.isActive, isDelete: !resident.isDelete });
-
-        if (!deletedResident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_DELETION_FAILED));
-
-        return res.json(successResponse(200, false, residentMessage.RESIDENT_DELETED_SUCCESS));
-    } catch (err) {
-        console.log("Active or inactive resident error : ", err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }

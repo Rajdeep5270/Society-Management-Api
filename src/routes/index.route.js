@@ -8,4 +8,7 @@ route.use('/auth', require('./auth/auth.route'));
 // admin api 
 route.use('/admin', require('./auth/admin/admin.route'));
 
+// resident api 
+route.use('/resident', require('./auth/resident/resident.route'));
+
 module.exports = route;

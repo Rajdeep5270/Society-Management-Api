@@ -105,13 +105,28 @@ module.exports.login = async (req, res) => {
             role: "resident"
         };
 
-        const token = jwt.sign(
+        const accessToken = jwt.sign(
             payload,
             process.env.JWT_SECRET_KEY,
+            {
+                expiresIn: "15m"
+            }
+        );
+
+        const refreshToken = jwt.sign(
+            payload,
+            process.env.JWT_REFRESH_SECRET_KEY,
             {
                 expiresIn: "7d"
             }
         );
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
 
         await residentService.updateResident(
             resident._id,
@@ -129,7 +144,7 @@ module.exports.login = async (req, res) => {
                 200,
                 false,
                 residentMessage.RESIDENT_LOGIN_SUCCESS,
-                token
+                accessToken
             )
         );
 
@@ -439,3 +454,240 @@ module.exports.changePassword = async (req, res) => {
         );
     }
 };
+
+// generate access token
+module.exports.generateAccessToken = async (req, res) => {
+    try {
+
+        // Get Access Token from Header
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_REQUIRED
+                ));
+        }
+
+        const accessToken = authHeader.split(" ")[1];
+
+        // Decode Access Token
+        const decodedAccessToken = jwt.decode(accessToken);
+
+        if (!decodedAccessToken) {
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_INVALID
+                ));
+        }
+
+        // Required payload values
+        if (!decodedAccessToken.id || !decodedAccessToken.role) {
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_INVALID
+                ));
+        }
+
+        // Verify Access Token Signature
+        let verifiedAccessToken;
+
+        try {
+            verifiedAccessToken = jwt.verify(
+                accessToken,
+                process.env.JWT_SECRET_KEY,
+                {
+                    ignoreExpiration: true
+                }
+            );
+        } catch (err) {
+            console.log(err);
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.ADMIN_TOKEN_VERIFICATION_FAILED
+                ));
+        }
+
+        // Get Refresh Token from Cookie
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.REFRESH_TOKEN_REQUIRED
+                ));
+        }
+
+        // Verify Refresh Token
+        const decodedRefreshToken = jwt.verify(
+            refreshToken,
+            process.env.JWT_REFRESH_SECRET_KEY
+        );
+
+        // Match Access Token and Refresh Token
+        if (
+            verifiedAccessToken.id !== decodedRefreshToken.id ||
+            verifiedAccessToken.role !== decodedRefreshToken.role
+        ) {
+            return res
+
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.REFRESH_TOKEN_INVALID
+                ));
+        }
+
+        // Generate New Access Token
+        const newAccessToken = jwt.sign(
+            {
+                id: decodedRefreshToken.id,
+                role: decodedRefreshToken.role
+            },
+            process.env.JWT_SECRET_KEY,
+            {
+                expiresIn: "15m"
+            }
+        );
+
+        return res
+            .json(successResponse(
+                200,
+                false,
+                MSG.REFRESH_TOKEN_GENERATED,
+                {
+                    accessToken: newAccessToken
+                }
+            ));
+
+    } catch (err) {
+
+        console.log(err);
+
+        if (err.name === "TokenExpiredError") {
+            return res
+
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.REFRESH_TOKEN_EXPIRED
+                ));
+        }
+
+        if (err.name === "JsonWebTokenError") {
+            return res
+
+                .json(errorResponse(
+                    401,
+                    true,
+                    MSG.REFRESH_TOKEN_INVALID
+                ));
+        }
+
+        return res
+            .json(errorResponse(
+                500,
+                true,
+                MSG.INTERNAL_SERVER_ERROR
+            ));
+    }
+};
+
+// fetch all resident 
+module.exports.getAllResident = async (req, res) => {
+    try {
+        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+
+        const allResidents = await residentService.findAll({ isActive: true, isDelete: false });
+
+        if (!allResidents) return res.json(errorResponse(400, true, residentMessage.RESIDENTS_FETCH_FAILED));
+
+        return res.json(successResponse(200, false, residentMessage.RESIDENTS_FETCH_SUCCESS, allResidents));
+    } catch (err) {
+        console.log("Get all resident error : ", err);
+        return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
+    }
+}
+
+// fetch single resident 
+module.exports.fetchSingleResident = async (req, res) => {
+    try {
+        const resident = await residentService.findOneResident({ _id: req.params.id, isActive: true, isDelete: false });
+
+        if (!resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_FETCH_FAILED));
+
+        return res.json(successResponse(200, false, residentMessage.RESIDENT_FETCH_SUCCESS, resident));
+    } catch (err) {
+        console.log("Fetch single resident error : ", err);
+        return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
+    }
+}
+
+module.exports.updateSingleResident = async (req, res) => {
+    try {
+        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+
+        const resident = await residentService.findOneResident({ _id: req.params.id, isActive: true, isDelete: false });
+
+        if (!resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_FETCH_FAILED));
+
+        req.body.updated_at = moment().format('MM/DD/YYYY, h:mm:ss a');
+
+        const updatedResident = await residentService.updateResident(req.params.id, req.body);
+
+        if (!updatedResident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_UPDATE_FAILED));
+
+        return res.json(successResponse(200, false, residentMessage.RESIDENT_UPDATED_SUCCESS, updatedResident));
+    } catch (err) {
+        console.log("Fetch single resident error : ", err);
+        return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
+    }
+}
+
+module.exports.activeOrInActiveResident = async (req, res) => {
+    try {
+        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+
+        const resident = await residentService.findOneResident({ _id: req.params.id, isDelete: false });
+
+        if (!resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_FETCH_FAILED));
+
+        const updatedResident = await residentService.updateResident(req.params.id, { isActive: !resident.isActive });
+
+        if (!updatedResident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_UPDATE_FAILED));
+
+        return res.json(successResponse(200, false, `${updatedResident.first_name} ${updatedResident.last_name}  is ${updatedResident.isActive ? 'active' : 'inactive'}`));
+    } catch (err) {
+        console.log("Active or inactive resident error : ", err);
+        return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
+    }
+}
+
+module.exports.deleteResident = async (req, res) => {
+    try {
+        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+
+        const resident = await residentService.findOneResident({ _id: req.params.id, isActive: true, isDelete: false });
+
+        if (!resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_FETCH_FAILED));
+
+        const deletedResident = await residentService.updateResident(req.params.id, { isActive: !resident.isActive, isDelete: !resident.isDelete });
+
+        if (!deletedResident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_DELETION_FAILED));
+
+        return res.json(successResponse(200, false, residentMessage.RESIDENT_DELETED_SUCCESS));
+    } catch (err) {
+        console.log("Active or inactive resident error : ", err);
+        return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
+    }
+}

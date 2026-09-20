@@ -1,6 +1,14 @@
 const Admin = require('../model/admin.model');
 
 module.exports = class AdminService {
+    async fetchAllAdmin(data) {
+        try {
+            return await Admin.find(data);
+        } catch (err) {
+            console.log("Fetch all admin error : ", err);
+        }
+    }
+
     async registerAdmin(data) {
         try {
             return await Admin.create(data);
