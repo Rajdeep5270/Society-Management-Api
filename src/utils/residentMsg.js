@@ -45,4 +45,6 @@ module.exports.residentMessage = {
     RESIDENT_DELETED_SUCCESS: "Resident deleted successfully.",
     RESIDENT_DELETION_FAILED: "Resident deletion failed.",
 
+    RESIDENT_VALIDATION: "Resident validation successfully"
+
 }

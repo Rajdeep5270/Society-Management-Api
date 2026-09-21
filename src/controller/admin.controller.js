@@ -439,20 +439,11 @@ module.exports.getCurrentUser = async (req, res) => {
 
     try {
 
-        return res.status(200).json({
-            status: 200,
-            error: false,
-            message: "User authenticated successfully.",
-            data: req.user
-        });
+        return res.json(successResponse(200, false, MSG.ADMIN_VALIDATION, req.admin));
 
     } catch (error) {
 
-        return res.status(500).json({
-            status: 500,
-            error: true,
-            message: "Internal server error."
-        });
+        return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
 
     }
 

@@ -89,4 +89,6 @@ module.exports.MSG = {
     ACCESS_TOKEN_PAYLOAD_INVALID: "Access token payload is invalid.",
     ACCESS_TOKEN_USER_MISMATCH: "Access token user mismatch.",
     ACCESS_TOKEN_ROLE_MISMATCH: "Access token role mismatch.",
+
+    ADMIN_VALIDATION: "Admin validate successfully",
 }
