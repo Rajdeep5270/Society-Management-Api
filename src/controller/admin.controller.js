@@ -435,6 +435,29 @@ module.exports.getAllAdmin = async (req, res) => {
     }
 }
 
+module.exports.getCurrentUser = async (req, res) => {
+
+    try {
+
+        return res.status(200).json({
+            status: 200,
+            error: false,
+            message: "User authenticated successfully.",
+            data: req.user
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            status: 500,
+            error: true,
+            message: "Internal server error."
+        });
+
+    }
+
+};
+
 module.exports.getSingleAdmin = async (req, res) => {
     try {
         if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);

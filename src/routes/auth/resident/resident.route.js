@@ -1,5 +1,5 @@
 const express = require('express');
-const { login, forgotPassword, verifyOTP, changePassword, getAllResident, fetchSingleResident, createResident, activeOrInActiveResident, updateSingleResident, deleteResident, generateAccessToken } = require('../../../controller/resident.controller');
+const { login, forgotPassword, verifyOTP, changePassword, getAllResident, fetchSingleResident, createResident, activeOrInActiveResident, updateSingleResident, deleteResident, generateAccessToken, getCurrentUser } = require('../../../controller/resident.controller');
 const { authMiddleware } = require('../../../middleware/auth.middleware');
 
 const residentRoute = express.Router();
@@ -14,6 +14,9 @@ residentRoute.use(authMiddleware);
 
 // get all resident 
 residentRoute.get('/', getAllResident);
+
+// get current user 
+residentRoute.get('/me', getCurrentUser);
 
 // fetch single resident 
 residentRoute.get('/:id', fetchSingleResident);

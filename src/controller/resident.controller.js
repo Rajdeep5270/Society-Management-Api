@@ -627,6 +627,29 @@ module.exports.getAllResident = async (req, res) => {
     }
 }
 
+module.exports.getCurrentUser = async (req, res) => {
+
+    try {
+
+        return res.status(200).json({
+            status: 200,
+            error: false,
+            message: "User authenticated successfully.",
+            data: req.user
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            status: 500,
+            error: true,
+            message: "Internal server error."
+        });
+
+    }
+
+};
+
 // fetch single resident 
 module.exports.fetchSingleResident = async (req, res) => {
     try {
