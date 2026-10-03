@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
 });
 
 module.exports.sendRegisterAdminMail = async (first_name, last_name, to, pass) => {
-    const websiteURL = "https://rajdeep-codefolio.vercel.app";
+    const websiteURL = "https://astvinayak-bungalows.vercel.app/";
     const societyName = "Astvinayak Bungalows";
 
     const mailOptions = {
@@ -148,7 +148,7 @@ module.exports.sendRegisterAdminMail = async (first_name, last_name, to, pass) =
 };
 
 module.exports.forgotPasswordAdminMail = async (OTP, to) => {
-    
+
     const mailOptions = {
         from: '"Astvinayak Bungalows" <rajdeepex5270@gmail.com>',
         to: to,
