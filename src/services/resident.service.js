@@ -19,7 +19,7 @@ module.exports = class ResidentService {
 
     async findAll(data) {
         try {
-            return await Resident.find(data).select('_id first_name last_name number house_no profile_image profile_image_url isActive isDelete');
+            return await Resident.find(data).select('_id first_name last_name email number house_no profile_image profile_image_url isActive isDelete');
         } catch (err) {
             console.log("Find all resident error : ", err);
         }
