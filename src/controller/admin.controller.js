@@ -15,6 +15,8 @@ const adminService = new AdminService();
 
 module.exports.register = async (req, res) => {
     try {
+        if (!req.admin || !req.super_admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
+
         const admin = await adminService.findOneAdmin({ email: req.body.email, isActive: true, isDelete: false });
 
         if (admin) return res.json(errorResponse(400, true, MSG.ADMIN_ALREADY_EXISTS));
@@ -113,13 +115,18 @@ module.exports.login = async (req, res) => {
                     MSG.ADMIN_INVALID_CREDENTIALS
                 )
             );
-        }
+        };
 
-        // JWT Payload
+        const role = req.body.email === "rajdeepex5270@gmail.com"
+            ? "super_admin"
+            : "admin";
+
         const payload = {
             id: admin._id,
-            role: "admin"
+            role: role
         };
+
+        console.log("Payload", payload);
 
         // Access Token
         const accessToken = jwt.sign(
@@ -134,7 +141,7 @@ module.exports.login = async (req, res) => {
         const refreshToken = jwt.sign(
             {
                 id: admin._id,
-                role: "admin"
+                role: role
             },
             process.env.JWT_REFRESH_SECRET_KEY,
             {
@@ -423,7 +430,7 @@ module.exports.generateAccessToken = async (req, res) => {
 
 module.exports.getAllAdmin = async (req, res) => {
     try {
-        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
+        if (!req.admin && !req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const allAdmin = await adminService.fetchAllAdmin({ isActive: true, isDelete: false });
 
@@ -451,7 +458,7 @@ module.exports.getCurrentUser = async (req, res) => {
 
 module.exports.getSingleAdmin = async (req, res) => {
     try {
-        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
+        if (!req.admin && !req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const id = req.params.id;
 
@@ -467,7 +474,7 @@ module.exports.getSingleAdmin = async (req, res) => {
 
 module.exports.activeOrInactiveAdmin = async (req, res) => {
     try {
-        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
+        if (!req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const id = req.params.id;
 
@@ -487,7 +494,7 @@ module.exports.activeOrInactiveAdmin = async (req, res) => {
 
 module.exports.updateSingleAdmin = async (req, res) => {
     try {
-        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
+        if (!req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const data = req.body;
         const id = req.params.id;
@@ -510,7 +517,7 @@ module.exports.updateSingleAdmin = async (req, res) => {
 
 module.exports.deleteSingleAdmin = async (req, res) => {
     try {
-        if (!req.admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
+        if (!req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const id = req.params.id;
 

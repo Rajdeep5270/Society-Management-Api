@@ -23,13 +23,13 @@ app.use(express.json());
 // api will go to index.js in routes
 app.use('/api', require('./routes/index.route'));
 
-// app.listen(process.env.PORT, (err) => {
-//     if (err) {
-//         console.log("Server is not started", err);
-//         return;
-//     }
+app.listen(process.env.PORT, (err) => {
+    if (err) {
+        console.log("Server is not started", err);
+        return;
+    }
 
-//     console.log("Server is started");
-// })
+    console.log("Server is started");
+})
 
-module.exports = app;
+// module.exports = app;

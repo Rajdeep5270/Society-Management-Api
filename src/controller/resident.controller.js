@@ -614,7 +614,7 @@ module.exports.generateAccessToken = async (req, res) => {
 // fetch all resident 
 module.exports.getAllResident = async (req, res) => {
     try {
-        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+        if (!req.admin && !req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const allResidents = await residentService.findAll({ isActive: true, isDelete: false });
 
@@ -643,6 +643,8 @@ module.exports.getCurrentUser = async (req, res) => {
 // fetch single resident 
 module.exports.fetchSingleResident = async (req, res) => {
     try {
+        if (!req.admin && !req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+
         const resident = await residentService.findOneResident({ _id: req.params.id, isActive: true, isDelete: false });
 
         if (!resident) return res.json(errorResponse(400, true, residentMessage.RESIDENT_FETCH_FAILED));
@@ -656,7 +658,7 @@ module.exports.fetchSingleResident = async (req, res) => {
 
 module.exports.updateSingleResident = async (req, res) => {
     try {
-        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+        if (!req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const resident = await residentService.findOneResident({ _id: req.params.id, isActive: true, isDelete: false });
 
@@ -677,7 +679,7 @@ module.exports.updateSingleResident = async (req, res) => {
 
 module.exports.activeOrInActiveResident = async (req, res) => {
     try {
-        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+        if (!req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const resident = await residentService.findOneResident({ _id: req.params.id, isDelete: false });
 
@@ -696,7 +698,7 @@ module.exports.activeOrInActiveResident = async (req, res) => {
 
 module.exports.deleteResident = async (req, res) => {
     try {
-        if (!req.admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
+        if (!req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const resident = await residentService.findOneResident({ _id: req.params.id, isActive: true, isDelete: false });
 

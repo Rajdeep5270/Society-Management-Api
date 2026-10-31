@@ -24,8 +24,6 @@ adminRoute.get('/:id', getSingleAdmin);
 // register admin 
 adminRoute.post('/', register);
 
-// adminRoute.post('/create-resident',)
-
 // active or inactive admin 
 adminRoute.put('/:id', activeOrInactiveAdmin);
 

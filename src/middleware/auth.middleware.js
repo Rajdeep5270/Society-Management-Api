@@ -1,3 +1,4 @@
+
 const AdminService = require("../services/admin.service");
 const ResidentService = require("../services/resident.service");
 const { MSG } = require("../utils/msg");
@@ -10,16 +11,11 @@ const jwt = require("jsonwebtoken");
 
 module.exports.authMiddleware = async (req, res, next) => {
     try {
-
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
             return res.status(401).json(
-                errorResponse(
-                    401,
-                    true,
-                    MSG.ADMIN_TOKEN_REQUIRED
-                )
+                errorResponse(401, true, MSG.ADMIN_TOKEN_REQUIRED)
             );
         }
 
@@ -29,11 +25,7 @@ module.exports.authMiddleware = async (req, res, next) => {
 
         if (!token) {
             return res.status(401).json(
-                errorResponse(
-                    401,
-                    true,
-                    MSG.ADMIN_TOKEN_INVALID
-                )
+                errorResponse(401, true, MSG.ADMIN_TOKEN_INVALID)
             );
         }
 
@@ -44,8 +36,7 @@ module.exports.authMiddleware = async (req, res, next) => {
 
         let data;
 
-        if (decoded.role === "admin") {
-
+        if (["super_admin", "admin"].includes(decoded.role)) {
             data = await adminService.findOneAdmin({
                 _id: decoded.id,
                 isActive: true,
@@ -53,12 +44,14 @@ module.exports.authMiddleware = async (req, res, next) => {
             });
 
             if (data) {
-                req.admin = data;
+                if (decoded.role === "super_admin") {
+                    req.super_admin = data;
+                } else {
+                    req.admin = data;
+                }
             }
         }
-
-        if (decoded.role === "resident") {
-
+        else if (decoded.role === "resident") {
             data = await residentService.findOneResident({
                 _id: decoded.id,
                 isActive: true,
@@ -72,26 +65,17 @@ module.exports.authMiddleware = async (req, res, next) => {
 
         if (!data) {
             return res.status(401).json(
-                errorResponse(
-                    401,
-                    true,
-                    MSG.ADMIN_TOKEN_INVALID
-                )
+                errorResponse(401, true, MSG.ADMIN_TOKEN_INVALID)
             );
         }
 
         next();
 
     } catch (err) {
-
         console.log("Auth middleware error:", err.message);
 
         return res.status(401).json(
-            errorResponse(
-                401,
-                true,
-                MSG.ADMIN_TOKEN_INVALID
-            )
+            errorResponse(401, true, MSG.ADMIN_TOKEN_INVALID)
         );
     }
 };
