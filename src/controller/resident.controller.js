@@ -151,8 +151,6 @@ module.exports.login = async (req, res) => {
         );
 
     } catch (err) {
-        console.log(err);
-
         return res.json(
             errorResponse(
                 500,
@@ -249,8 +247,6 @@ module.exports.forgotPassword = async (req, res) => {
         );
 
     } catch (err) {
-        console.log(err);
-
         return res.json(
             errorResponse(
                 500,
@@ -362,8 +358,6 @@ module.exports.verifyOTP = async (req, res) => {
         );
 
     } catch (err) {
-        console.log(err);
-
         return res.json(
             errorResponse(
                 500,
@@ -451,8 +445,6 @@ module.exports.changePassword = async (req, res) => {
         );
 
     } catch (err) {
-        console.log(err);
-
         return res.json(
             errorResponse(
                 500,
@@ -515,7 +507,6 @@ module.exports.generateAccessToken = async (req, res) => {
                 }
             );
         } catch (err) {
-            console.log(err);
             return res
                 .json(errorResponse(
                     401,
@@ -579,9 +570,6 @@ module.exports.generateAccessToken = async (req, res) => {
             ));
 
     } catch (err) {
-
-        console.log(err);
-
         if (err.name === "TokenExpiredError") {
             return res
 
@@ -622,7 +610,6 @@ module.exports.getAllResident = async (req, res) => {
 
         return res.json(successResponse(200, false, residentMessage.RESIDENTS_FETCH_SUCCESS, allResidents));
     } catch (err) {
-        console.log("Get all resident error : ", err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
@@ -651,7 +638,6 @@ module.exports.fetchSingleResident = async (req, res) => {
 
         return res.json(successResponse(200, false, residentMessage.RESIDENT_FETCH_SUCCESS, resident));
     } catch (err) {
-        console.log("Fetch single resident error : ", err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
@@ -672,7 +658,6 @@ module.exports.updateSingleResident = async (req, res) => {
 
         return res.json(successResponse(200, false, residentMessage.RESIDENT_UPDATED_SUCCESS, updatedResident));
     } catch (err) {
-        console.log("Fetch single resident error : ", err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
@@ -691,7 +676,6 @@ module.exports.activeOrInActiveResident = async (req, res) => {
 
         return res.json(successResponse(200, false, `${updatedResident.first_name} ${updatedResident.last_name}  is ${updatedResident.isActive ? 'active' : 'inactive'}`));
     } catch (err) {
-        console.log("Active or inactive resident error : ", err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
@@ -710,7 +694,6 @@ module.exports.deleteResident = async (req, res) => {
 
         return res.json(successResponse(200, false, residentMessage.RESIDENT_DELETED_SUCCESS));
     } catch (err) {
-        console.log("Active or inactive resident error : ", err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }

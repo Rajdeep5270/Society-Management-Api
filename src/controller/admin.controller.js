@@ -38,7 +38,6 @@ module.exports.register = async (req, res) => {
 
         return res.json(successResponse(201, false, MSG.ADMIN_REGISTRATION_SUCCESS, newAdmin));
     } catch (err) {
-        console.log(err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
@@ -126,8 +125,6 @@ module.exports.login = async (req, res) => {
             role: role
         };
 
-        console.log("Payload", payload);
-
         // Access Token
         const accessToken = jwt.sign(
             payload,
@@ -178,8 +175,6 @@ module.exports.login = async (req, res) => {
 
     } catch (err) {
 
-        console.log(err);
-
         return res.json(
             errorResponse(
                 500,
@@ -219,7 +214,6 @@ module.exports.forgotPassword = async (req, res) => {
 
         return res.json(successResponse(200, false, MSG.ADMIN_OTP_SENT_SUCCESS));
     } catch (err) {
-        console.log(err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
@@ -251,7 +245,6 @@ module.exports.verifyOTP = async (req, res) => {
 
         return res.json(successResponse(200, false, MSG.ADMIN_OTP_VERIFIED));
     } catch (err) {
-        console.log(err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
@@ -276,7 +269,6 @@ module.exports.changePassword = async (req, res) => {
 
         return res.json(successResponse(200, false, MSG.ADMIN_PASSWORD_RESET_SUCCESS));
     } catch (err) {
-        console.log(err);
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
     }
 }
@@ -332,7 +324,6 @@ module.exports.generateAccessToken = async (req, res) => {
                 }
             );
         } catch (err) {
-            console.log(err);
             return res
                 .json(errorResponse(
                     401,
@@ -397,8 +388,6 @@ module.exports.generateAccessToken = async (req, res) => {
 
     } catch (err) {
 
-        console.log(err);
-
         if (err.name === "TokenExpiredError") {
             return res
 
@@ -432,7 +421,7 @@ module.exports.getAllAdmin = async (req, res) => {
     try {
         if (!req.admin && !req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
-        const allAdmin = await adminService.fetchAllAdmin({ isActive: true, isDelete: false });
+        const allAdmin = await adminService.fetchAllAdmin({ isDelete: false });
 
         if (!allAdmin) return res.json(errorResponse(400, true, MSG.ADMIN_FETCH_ALL_FAILED));
 

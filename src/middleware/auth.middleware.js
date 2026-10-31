@@ -72,8 +72,6 @@ module.exports.authMiddleware = async (req, res, next) => {
         next();
 
     } catch (err) {
-        console.log("Auth middleware error:", err.message);
-
         return res.status(401).json(
             errorResponse(401, true, MSG.ADMIN_TOKEN_INVALID)
         );
