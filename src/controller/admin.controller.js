@@ -15,7 +15,7 @@ const adminService = new AdminService();
 
 module.exports.register = async (req, res) => {
     try {
-        if (!req.super_admin) return res.json(404, true, MSG.ADMIN_UNAUTHORIZED);
+        if (!req.super_admin) return res.json(errorResponse(404, true, MSG.ADMIN_UNAUTHORIZED));
 
         const admin = await adminService.findOneAdmin({ email: req.body.email, isActive: true, isDelete: false });
 
