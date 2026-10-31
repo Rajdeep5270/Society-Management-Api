@@ -443,17 +443,11 @@ module.exports.getAllAdmin = async (req, res) => {
 }
 
 module.exports.getCurrentUser = async (req, res) => {
-
     try {
-
-        return res.json(successResponse(200, false, MSG.ADMIN_VALIDATION, req.admin));
-
+        return res.json(successResponse(200, false, MSG.ADMIN_VALIDATION, (req.super_admin) ? req.super_admin : req.admin));
     } catch (error) {
-
         return res.json(errorResponse(500, true, MSG.INTERNAL_SERVER_ERROR));
-
     }
-
 };
 
 module.exports.getSingleAdmin = async (req, res) => {
